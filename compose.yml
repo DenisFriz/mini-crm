@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mongo:7
+    container_name: lead_tracker_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    working_dir: /app
+    build:
+      context: ./packages/backend
+    container_name: lead_tracker_backend
+    restart: always
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mongodb://db:27017/lead-tracker
+      PORT: 3001
+    volumes:
+      - ./packages/backend:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+  frontend:
+    working_dir: /app
+    build:
+      context: ./packages/frontend
+    container_name: lead_tracker_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./packages/frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  mongo_data:
